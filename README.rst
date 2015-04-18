@@ -2,6 +2,28 @@ gredis
 ======
 gRedis is a asynchronous client library of Redis written with `Tornado <https://github/tornadoweb/tornado>`_ coroutine.
 
+Installation
+============
+
+.. code-block:: shell
+
+    pip install gredis
+
+OR
+
+.. code-block:: shell
+
+    easy_install gredis
+
+
+OR 
+    
+.. code-block:: shell
+
+    git clone https://github.com/coldnight/gredis
+    cd gredis
+    python setup.py install
+
 Usage
 =====
 
