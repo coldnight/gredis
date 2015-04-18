@@ -42,11 +42,11 @@ class GRedisTest(AsyncTestCase):
         self.assertListEqual(lst, _lst)
 
     @gen_test
-    def test_to_socket_client(self):
+    def test_to_blocking_client(self):
         key = "g_test_1_key"
 
         yield self.client.set(key, "gredis")
-        client = self.client.to_socket_client()
+        client = self.client.to_blocking_client()
         result = client.get(key)
         self.assertEqual(result, "gredis")
         asyc_result = yield self.client.get(key)

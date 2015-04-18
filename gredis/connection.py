@@ -298,7 +298,7 @@ class AsyncConnection(Connection, TCPClient):
             raise response
         raise gen.Return(response)
 
-    def to_socket_connection(self, socket_read_size=65536):
+    def to_blocking_connection(self, socket_read_size=65536):
         """ Convert asynchronous connection to blocking socket connection
         """
         conn = Connection(

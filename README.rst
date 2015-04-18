@@ -40,7 +40,7 @@ Usage
         @gen.coroutine
         def get(self):
             ret = yield client.incr("key")
-            redis = client.to_socket_client()
+            redis = client.to_blocking_client()
             ret2 = redis.incr("key")
             self.write(str(ret + ret2))
 

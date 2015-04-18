@@ -60,11 +60,28 @@ class ChatMessageHandler(web.RequestHandler):
         self.write(message)
 
 
+# from tornado import gen
+# from tornado import web
+# from gredis.client import AsyncRedis
+
+# client = AsyncRedis("ip.or.host", 6379)
+
+class DemoHandler(web.RequestHandler):
+
+    @gen.coroutine
+    def get(self):
+        ret = yield client.incr("key")
+        redis = client.to_socket_client()
+        ret2 = redis.incr("key")
+        self.write(str(ret + ret2))
+
+
 
 if __name__ == "__main__":
     app = web.Application([
         (r'/chat/message', ChatMessageHandler),
         (r'/chat/?(.*)', ChatHandler),
+        (r'/', DemoHandler),
     ], debug=True)
 
     app.listen(8888)

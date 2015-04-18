@@ -63,10 +63,10 @@ class AsyncStrictRedis(AsyncRedisMixin, StrictRedis):
         self.connection_pool.connection_class = AsyncConnection
 
     def pipeline(self, *args, **kwargs):
-        obj = self.to_socket_client()
+        obj = self.to_blocking_client()
         return obj.pipeline(*args, **kwargs)
 
-    def to_socket_client(self):
+    def to_blocking_client(self):
         """ Convert asynchronous client to blocking socket client
         """
         obj = StrictRedis()
@@ -81,14 +81,14 @@ class AsyncRedis(AsyncRedisMixin, Redis):
         self.connection_pool.connection_class = AsyncConnection
 
     def pubsub(self, **kwargs):
-        obj = self.to_socket_client()
+        obj = self.to_blocking_client()
         return obj.pubsub(**kwargs)
 
     def pipeline(self, *args, **kwargs):
-        obj = self.to_socket_client()
+        obj = self.to_blocking_client()
         return obj.pipeline(*args, **kwargs)
 
-    def to_socket_client(self):
+    def to_blocking_client(self):
         """ Convert asynchronous client to blocking socket client
         """
         obj = Redis()
