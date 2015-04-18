@@ -1,0 +1,12 @@
+*.pyc
+*.pyo
+*.so
+*.swp
+.idea/
+build/
+/dist/
+MANIFEST
+.tox/
+.vagrant
+/.coverage
+gredis.egg-info/

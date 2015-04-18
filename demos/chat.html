@@ -1,0 +1,59 @@
+<html>
+    <head>
+        <title>Chat</title>
+    </head>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <script>
+    $(function(){
+        var chat_id = $("#chat-id").val();
+
+        function fetchMessage(){
+            $.ajax({
+                url: "/chat/message",
+                type: "POST",
+                dataType: "text",
+                data: {chat_id: chat_id},
+                success: function(data, status){
+                    var html = $(".chat-content").html();
+                    html += "<p>" + data + "</p>";
+                    $(".chat-content").html(html);
+                    fetchMessage();
+                }
+            });
+        }
+
+        function sendMessage(message){
+            var data = {"message": message};
+            console.log(data);
+            $.ajax({
+                url: location.path,
+                type: "POST",
+                data: data,
+                dataType: "text",
+                success: function(data, status){
+                    var html = $(".chat-content").html();
+                    html += '<p style="float:right;">' +  message + "</p>";
+                    html += '<div style="clear:both;"></div>';
+                    $(".chat-content").html(html);
+                }
+            })
+        }
+
+        $("#chat-send").click(function(){
+            var message = $("#chat-message").val();
+            sendMessage(message);
+        });
+
+        fetchMessage();
+
+    });
+    </script>
+    <body>
+        <strong> Send <em>{{url}}</em> to someone and begin chat.
+        <div class="chat-content" style="height: 300px; width: 400px; overflow:auto;">
+        </div>
+        <textarea id="chat-message"></textarea>
+        <input type="button" id="chat-send" value="发送" />
+        <input type="hidden" id="chat-id" value="{{ chat_id }}" />
+    </body>
+</html>
