@@ -1,6 +1,6 @@
 gredis
 ======
-gRedis is a asynchronous client library of Redis written with `Tornado <https://github/tornadoweb/tornado>`_ coroutine.
+gRedis is an asynchronous client library of Redis written with `Tornado <https://github/tornadoweb/tornado>`_ coroutine.
 
 Installation
 ============

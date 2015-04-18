@@ -22,7 +22,7 @@ setup(
     author_email="wh_linux@126.com",
     url="http://www.linuxzen.com/",
     license="http://www.apache.org/licenses/LICENSE-2.0",
-    description="gRedis is a asynchronous client library of Redis written with Tornado coroutine.",
+    description="gRedis is an asynchronous client library of Redis written with Tornado coroutine.",
     classifiers=[
         'License :: OSI Approved :: Apache Software License',
         # 'Programming Language :: Python :: 2',
