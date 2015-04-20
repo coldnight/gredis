@@ -18,14 +18,18 @@ from gredis.connection import AsyncConnection
 
 
 def _construct_connection_pool(pool):
-    """ Construct a blocking socket connection pool based on asychronous pool
+    """ Construct a blocking socket connection pool based on asynchronous pool
     """
     _pool = ConnectionPool(Connection, pool.max_connections, **pool.connection_kwargs)
 
     return _pool
 
 
-class AsyncRedisMixin(object):
+class AsyncStrictRedis(StrictRedis):
+
+    def __init__(self, *args, **kwargs):
+        StrictRedis.__init__(self, *args, **kwargs)
+        self.connection_pool.connection_class = AsyncConnection
 
     # COMMAND EXECUTION AND PROTOCOL PARSING
     @gen.coroutine
@@ -55,13 +59,6 @@ class AsyncRedisMixin(object):
             raise gen.Return(self.response_callbacks[command_name](response, **options))
         raise gen.Return(response)
 
-
-class AsyncStrictRedis(AsyncRedisMixin, StrictRedis):
-
-    def __init__(self, *args, **kwargs):
-        StrictRedis.__init__(self, *args, **kwargs)
-        self.connection_pool.connection_class = AsyncConnection
-
     def pipeline(self, *args, **kwargs):
         obj = self.to_blocking_client()
         return obj.pipeline(*args, **kwargs)
@@ -74,19 +71,10 @@ class AsyncStrictRedis(AsyncRedisMixin, StrictRedis):
         return obj
 
 
-class AsyncRedis(AsyncRedisMixin, Redis):
-
-    def __init__(self, *args, **kwargs):
-        Redis.__init__( self, *args, **kwargs)
-        self.connection_pool.connection_class = AsyncConnection
-
+class AsyncRedis(AsyncStrictRedis):
     def pubsub(self, **kwargs):
         obj = self.to_blocking_client()
         return obj.pubsub(**kwargs)
-
-    def pipeline(self, *args, **kwargs):
-        obj = self.to_blocking_client()
-        return obj.pipeline(*args, **kwargs)
 
     def to_blocking_client(self):
         """ Convert asynchronous client to blocking socket client
