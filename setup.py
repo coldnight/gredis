@@ -23,6 +23,7 @@ setup(
     url="https://github.com/coldnight/gredis",
     license="http://www.apache.org/licenses/LICENSE-2.0",
     description="gRedis is an asynchronous client library of Redis written with Tornado coroutine.",
+    long_description=open("README.rst").read(),
     install_requires=["tornado>=4.0", "redis"],
     classifiers=[
         'License :: OSI Approved :: Apache Software License',
