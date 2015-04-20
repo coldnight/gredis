@@ -10,7 +10,7 @@ from __future__ import absolute_import, print_function, division, with_statement
 
 from tornado import gen
 
-from redis.client import StrictRedis, Redis
+from redis.client import StrictRedis, Redis, PubSub
 from redis.exceptions import ConnectionError, TimeoutError
 from redis.connection import Connection, ConnectionPool
 
@@ -73,8 +73,7 @@ class AsyncStrictRedis(StrictRedis):
 
 class AsyncRedis(AsyncStrictRedis):
     def pubsub(self, **kwargs):
-        obj = self.to_blocking_client()
-        return obj.pubsub(**kwargs)
+        return AsyncPubSub(self.connection_pool, **kwargs)
 
     def to_blocking_client(self):
         """ Convert asynchronous client to blocking socket client
@@ -82,3 +81,41 @@ class AsyncRedis(AsyncStrictRedis):
         obj = Redis()
         obj.connection_pool = _construct_connection_pool(self.connection_pool)
         return obj
+
+
+class AsyncPubSub(PubSub):
+    def execute_command(self, *args, **kwargs):
+        "Execute a publish/subscribe command"
+
+        # NOTE: don't parse the response in this function. it could pull a
+        # legitmate message off the stack if the connection is already
+        # subscribed to one or more channels
+
+        if self.connection is None:
+            self.connection = self.connection_pool.get_connection(
+                'pubsub',
+                self.shard_hint
+            )
+            # register a callback that re-subscribes to any channels we
+            # were listening to when we were disconnected
+            self.connection.register_connect_callback(self.on_connect)
+        connection = self.connection
+        return self._execute(connection, connection.send_command, *args)
+
+    def listen(self):
+        "Listen for messages on channels this client has been subscribed to"
+        raise NotImplementedError
+
+    @gen.coroutine
+    def get_message(self, block=False, ignore_subscribe_messages=False):
+        """
+        Get the next message if one is available, otherwise None.
+
+        If timeout is specified, the system will wait for `timeout` seconds
+        before returning. Timeout should be specified as a floating point
+        number.
+        """
+        response = yield self.parse_response(block)
+        if response:
+            raise gen.Return(self.handle_message(response, ignore_subscribe_messages))
+        raise gen.Return(None)

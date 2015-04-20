@@ -8,6 +8,7 @@
 #
 from __future__ import absolute_import, print_function, division, with_statement
 
+import os
 from tornado.testing import gen_test, AsyncTestCase
 
 from gredis.client import AsyncRedis
@@ -53,7 +54,7 @@ class GRedisTest(AsyncTestCase):
         self.assertEqual(asyc_result, "gredis")
 
     @gen_test
-    def test_pipeline(self):
+    def test_blocking_pipeline(self):
         key = "g_pipeline_test"
         key1 = "g_pipeline_test1"
         pipeline = self.client.pipeline()
@@ -66,3 +67,15 @@ class GRedisTest(AsyncTestCase):
         self.assertEqual(ret, "gredis")
         ret1 = yield self.client.get(key1)
         self.assertEqual(ret1, "gredis1")
+
+    @gen_test
+    def test_async_pubsub(self):
+        pubsub = self.client.pubsub()
+        channel = "test"
+        yield pubsub.subscribe(channel)
+        response = yield pubsub.get_message(True)
+        self.assertEqual(response["type"], "subscribe")
+        yield self.client.publish(channel, "test")
+        response = yield pubsub.get_message(True)
+        self.assertEqual(response["type"], "message")
+        self.assertEqual(response["data"], "test")

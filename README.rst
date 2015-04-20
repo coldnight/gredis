@@ -44,8 +44,35 @@ Usage
             ret2 = redis.incr("key")
             self.write(str(ret + ret2))
 
+Pub/Sub
+-------
+.. code-block:: python
+
+    from tornado import gen
+    from tornado import web
+    from gredis.client import AsyncRedis
+
+    client = AsyncRedis("ip.or.host", 6379)
+
+    class PubSubHandler(web.RequestHandler):
+
+        @gen.coroutine
+        def get(self):
+            pubsub = client.pubsub()
+            channel = "test"
+            yield pubsub.subscribe(channel)
+            response = yield pubsub.get_message(True)
+            assert response["type"] == "subscribe"
+            response = yield pubsub.get_message(True)
+            assert response["type"] == "subscribe"
+            self.write(response['data'])
+
+        @gen.coroutine
+        def post(self):
+            yield client.publish(channel, "test")
+
+
 Not Implementation
 ==================
 
-* pubsub
 * pipeline
