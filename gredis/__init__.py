@@ -8,4 +8,4 @@
 #
 from __future__ import absolute_import, print_function, division, with_statement
 
-version = "0.0.6"
+version = "0.0.7"

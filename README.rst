@@ -69,7 +69,7 @@ Pub/Sub
             response = yield pubsub.get_message(True)
             assert response["type"] == "subscribe"
             response = yield pubsub.get_message(True)
-            assert response["type"] == "subscribe"
+            assert response["type"] == "message"
             self.write(response['data'])
 
         @gen.coroutine
