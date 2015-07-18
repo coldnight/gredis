@@ -225,12 +225,14 @@ class AsyncConnection(Connection, TCPClient):
         if self.password:
             yield self.send_command('AUTH', self.password)
 
-            if nativestr(self.read_response()) != 'OK':
+            response = yield self.read_response()
+            if nativestr(response) != 'OK':
                 raise AuthenticationError('Invalid Password')
 
         if self.db:
             yield self.send_command('SELECT', self.db)
-            if nativestr(self.read_response()) != 'OK':
+            response = yield self.read_response()
+            if nativestr(response) != 'OK':
                 raise ConnectionError('Invalid Database')
 
     def disconnect(self):
