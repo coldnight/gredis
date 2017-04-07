@@ -1,0 +1,10 @@
+[run]
+branch = true
+
+include = gredis/*
+timid = true
+
+[report]
+fail_under = 90
+show_missing = true
+skip_covered = true
