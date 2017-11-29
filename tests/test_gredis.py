@@ -17,7 +17,10 @@ from gredis.client import AsyncRedis
 class GRedisTest(AsyncTestCase):
     def setUp(self):
         super(GRedisTest, self).setUp()
-        self.client = AsyncRedis("192.168.1.50", 6379)
+        self.client = AsyncRedis(
+            "192.168.1.50", 6379, encoding="utf8",
+            decode_responses=True,
+        )
 
     @gen_test
     def test_get_set(self):

@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-#
-#   Author  :   cold
-#   E-mail  :   wh_linux@126.com
-#   Date    :   15/04/15 15:21:07
-#   Desc    :   Asynchronous Redis connection with use tornado coroutinue
-#
-from __future__ import absolute_import, print_function, division, with_statement
+"""Inheritance from :class:`redis.connection.Connection` and make it
+asynchronous.
+"""
+from __future__ import unicode_literals, print_function, division
 
 import sys
 import socket
@@ -40,7 +37,7 @@ class StreamBuffer(SocketBuffer):
         try:
             while True:
                 try:
-                    data = yield self._stream.read_until_regex('\r\n')
+                    data = yield self._stream.read_until_regex(b'\r\n')
                 except StreamClosedError:
                     raise socket.error(SERVER_CLOSED_CONNECTION_ERROR)
 
@@ -57,7 +54,8 @@ class StreamBuffer(SocketBuffer):
             raise TimeoutError("Timeout reading from stream")
         except socket.error:
             e = sys.exc_info()[1]
-            raise ConnectionError("Error while reading from stream: %s" % (e.args, ))
+            raise ConnectionError(
+                "Error while reading from stream: %s" % (e.args, ))
 
     @gen.coroutine
     def read(self, length):
@@ -99,6 +97,7 @@ class AsyncParser(PythonParser):
 
     def __init__(self, socket_read_size):
         self.socket_read_size = socket_read_size
+        self.encoder = None
         self._stream = None
         self._buffer = None
 
@@ -112,8 +111,7 @@ class AsyncParser(PythonParser):
         """ Called when stream connects """
         self._stream = weakref.proxy(connection._stream)
         self._buffer = StreamBuffer(self._stream, self.socket_read_size)
-        if connection.decode_responses:
-            self.encoding = connection.encoding
+        self.encoder = connection.encoder
 
     def on_disconnect(self):
         if self._stream is not None:
@@ -160,7 +158,7 @@ class AsyncParser(PythonParser):
             pass
         # int value
         elif byte == ':':
-            response = long(response)
+            response = int(response)
         # bulk response
         elif byte == '$':
             length = int(response)
@@ -174,12 +172,12 @@ class AsyncParser(PythonParser):
                 raise gen.Return(None)
             response = []
 
-            for i in xrange(length):
+            for i in range(length):
                 res = yield self.read_response()
                 response.append(res)
 
-        if isinstance(response, bytes) and self.encoding:
-            response = response.decode(self.encoding)
+        if isinstance(response, bytes):
+            response = self.encoder.decode(response)
 
         raise gen.Return(response)
 
@@ -285,7 +283,7 @@ class AsyncConnection(Connection, TCPClient):
         if not sock:
             yield self.connect()
             sock = self._stream.socket
-        raise gen.Return(self._parser.can_read() or \
+        raise gen.Return(self._parser.can_read() or
                          bool(select([sock], [], [], timeout)[0]))
 
     @gen.coroutine
@@ -296,8 +294,10 @@ class AsyncConnection(Connection, TCPClient):
         except:
             self.disconnect()
             raise
+
         if isinstance(response, ResponseError):
             raise response
+
         raise gen.Return(response)
 
     def to_blocking_connection(self, socket_read_size=65536):
@@ -306,8 +306,9 @@ class AsyncConnection(Connection, TCPClient):
         conn = Connection(
             self.host, self.port, self.db, self.password, self.socket_timeout,
             self.socket_connect_timeout, self.socket_keepalive,
-            self.socket_keepalive_options, self.retry_on_timeout, self.encoding,
-            self.encoding_errors, self.decode_responses, DefaultParser, socket_read_size)
+            self.socket_keepalive_options, self.retry_on_timeout,
+            self.encoding, self.encoding_errors, self.decode_responses,
+            DefaultParser, socket_read_size)
 
         conn._sock = self._stream.socket
         return conn
